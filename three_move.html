@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<select id="selProvince">
+  <option value="">--请选择省份--</option>
+</select>
+<select id="selCity">
+  <option value="">--请选择城市--</option>
+</select>
+<select id="selCounty">
+  <option value="">--请选择区/县--</option>
+</select>
+
+<script type="text/javascript" src="../js/jquery-1.11.1.js"></script>
+<script type="text/javascript">
+    //dom ready的时候
+    $(function () {
+        var $province=$('#selProvince');
+        var $city = $('#selCity');
+        var $country = $('#selCounty');
+
+        //doc onload请求省的数据
+        //get /ajax_province
+        //回一个json数据
+        //     将数据添加到界面上
+        $.getJSON('/ajax_province',function (result) {
+            //遍历数组 $.each  index,item
+
+//            $.each(result,function (index,item) {
+//                //console.log(index,item);
+//                var provinceName = item.province;
+//                var provinceId = item.id;
+//                $('<option value="'+provinceId+'">'+provinceName+'</option>').appendTo($province);
+//            });
+            // 遍历数组 foreach  item，index
+            result.forEach(function (item,index) {
+                var provinceName = item.province;
+                var provinceId = item.id;
+                $province.append('<option value="'+provinceId+'">'+provinceName+'</option>');
+            });
+        });
+        //选择省获得城市的数据
+        //监听省的变化
+
+        $province.change(function () {
+            //清空之前城市的数据,剩下第一条“请选择城市”
+            $city.children(":not(:first)").remove();
+            $country.children(":not(:first)").remove();
+            //如果发送的是 空的，那么就不要发送数据
+            if(''===$(this).val()){
+                return;
+            }
+
+            var provinceId = $(this).val();
+            //console.log(provinceId);
+            $.getJSON('/ajax_city',{provinceID: provinceId},function (cityObj) {
+                var citys = cityObj.city;
+                for(var i=0;i<citys.length;i++){
+                    var cityName = citys[i].city;
+                    var cityId = citys[i].id;
+                    //console.log(cityName,cityId);
+                    var optionStr = '<option value="'+cityId+'">'+cityName+'</option>';
+                    $city.append(optionStr);
+                }
+            });
+        });
+
+        //选择城市获得县区的数据
+        //监听城市的变化
+        $city.change(function () {
+            //清空之前县区的数据,剩下第一条“请选择区/县”
+            $country.children(":not(:first)").remove();
+            //如果发送的是 空的，那么就不要发送数据
+            if(''===$(this).val()){
+                return;
+            }
+
+            var cityId=$(this).val();
+           // console.log(cityID);
+            $.getJSON('/ajax_country',{cityID:cityId},function (countyObj) {
+                var countys = countyObj.county;
+                countys.forEach(function (item,index){
+                    var countyName = item.county;
+                    var countyID = item.id;
+                    var countyStr = '<option value="'+countyID+'">'+countyName+'</option>';
+                    $country.append(countyStr);
+
+                });
+
+            });
+        });
+    })
+
+
+
+</script>
+</body>
+</html>
